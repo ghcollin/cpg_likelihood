@@ -97,7 +97,7 @@ ext_modules = [
                 os.path.join('libs', 'expint', 'inc'),
                 os.path.join('libs', 'eigen')
             ],
-            libraries = ['quadmath'],
+            libraries = [],
             extra_compile_args=[
                 '-O3',
                 '-march=native',

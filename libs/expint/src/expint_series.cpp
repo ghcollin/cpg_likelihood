@@ -31,7 +31,6 @@ THE SOFTWARE.*/
  */
 
 #include <cmath>
-#include <quadmath.h>
 
 #include "expint.h"
 
