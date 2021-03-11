@@ -22,7 +22,7 @@ class Model(object):
         raise NotImplementedError()
 
 
-class LeafModel(Model):
+class NodeModel(Model):
     def __init__(self):
         super().__init__()
 
@@ -48,35 +48,52 @@ class ModelGroup(Model):
 
 
 class FluxRoot(Model):
-    def __init__(self, F_prior, omega_priors, **models):
+    def __init__(self, F_prior, omega_node):
         super().__init__()
-        self.models = models
-        dtypes = [ (name, model.dtype) for name, model in models.items() if model.dtype is not None ]
-        self.omega_priors = map(default_unit_linear_prior, omega_priors if isinstance(omega_priors, list) else [omega_priors] )
-        dtypes += [ (prior.id(), float) for prior in self.omega_priors ]
         self.F_prior = F_prior
-        dtypes += [ (self.F_prior.id(), float) ]
+        self.omega_node = omega_node
+        dtypes = [ (self.F_prior.id(), float) ] + omega_node.dtypes
         self.dtype = np.dtype(dtypes)
 
     def _get_params(self, name_fn, val_fn, out, thetas):
         out[name_fn(self.F_prior)] = val_fn(self.F_prior, thetas[self.F_prior.id()])
-        for p in self.omega_priors:
-            out[name_fn(p)] = valfn(p, thetas[p.id()])
-        for name, model in self.models:
-            if model.dtype is not None:
-                model._get_params(name_fn, val_fn, out[name], thetas[name])
+        self.omega_node._get_params(name_fn, val_fn, out, thetas)
 
     def _add_model(self, model_list, poiss_map, thetas):
-        Ftotal = self.F_prior.xform(self.F_prior.id())
-        omegas = [ op.xform(thetas[op.id()]) for op in self.omega_priors ]
-        fluxes = Ftotal * np.cumprod(omegas)
-        for (name, model), F in zip(self.models.items(), fluxes):
-            poiss_map = model._add_model_F(
-                model_list, poiss_map, F,
-                thetas[name] if self.models[name].dtype is not None else None)
+        Ftotal = self.F_prior.xform(thetas[self.F_prior.id()])
+        return self.omega_node._add_model_F(model_list, poiss_map, Ftotal, thetas)
 
 
-class PoissLeaf(LeafModel):
+class OmegaNode(NodeModel):
+    def __init__(self, omega_prior, model1_name, model1, model2_name, model2):
+        super().__init__()
+        self.omega_prior = default_unit_linear_prior(omega_prior)
+        self.names = [model1_name, model2_name]
+        self.models = [model1, model2]
+        self.dtypes = [ (self.omega_prior.id(), float) ] \
+             + [ (name, model.dtype) for name, model in zip(self.names, self.models) if model.dtype is not None ]
+        self.dtype = np.dtype(self.dtypes)
+
+    def _get_params(self, name_fn, val_fn, out, thetas):
+        out[name_fn(self.omega_prior)] = val_fn(self.omega_prior, thetas[self.omega_prior.id()])
+        _ = [ model._get_params(name_fn, val_fn, out[name], thetas[name]) for name, model in zip(self.names, self.models) if model.dtype is not None ]
+
+    def _add_model_F(self, model_list, poiss_map, F, thetas):
+        omega = self.omega_prior.xform(thetas[self.omega_prior.id()])
+        return self.models[0]._add_model_F(
+            model_list, 
+            self.models[1]._add_model_F(
+                model_list,
+                poiss_map,
+                (1-omega)*F,
+                thetas[self.names[1]] if self.models[1].dtype is not None else None
+            ),
+            omega*F,
+            thetas[self.names[0]] if self.models[0].dtype is not None else None
+        )
+
+
+class PoissLeaf(NodeModel):
     def __init__(self, eps_total):
         super().__init__()
         self.dtype = None
@@ -86,7 +103,7 @@ class PoissLeaf(LeafModel):
         return poiss_map + F * self.eps_total
 
 
-class NaturalPSLeaf(LeafModel):
+class NaturalPSLeaf(NodeModel):
     def __init__(self, eps, d_mu_eps, N_prior, beta_priors, n_priors):
         super().__init__()
         assert(len(n_priors) >= 2)
@@ -242,6 +259,8 @@ class JointDistribution(object):
             poiss_model = self.empty_map
             poiss_model = self.model._add_model(ps_models, poiss_model, thetas)
 
+            assert(len(ps_models) > 0)
+            assert(poiss_model is not None)
             val, bad_ = self.workspace.eval(ps_models, poiss_model)
             vals.append(val)
             bad = bad or bad_
