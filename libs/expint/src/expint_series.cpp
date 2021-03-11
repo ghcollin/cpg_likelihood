@@ -299,7 +299,7 @@ double expint_laguerre_series(const double v, const double x, const double c)
   Lk = 1.0;
   Lk1 = x + v;
   // iteration 0
-  s = c/exp_mx + 1/ Lk1;
+  s = (c ? c/exp_mx : 0) + 1/ Lk1;
 
   u = 1.0;
   d = 1.0;
