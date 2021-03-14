@@ -179,8 +179,8 @@ class StandardPSModel(Model):
 
     def _add_model(self, model_list, poiss_map, thetas):
         A = self.A_prior.xform(thetas[self.A_prior.id()])
-        Fbs = [ p.xform(thetas[p.id()]) for p in self.Fb_priors ]
-        ns = [ p.xform(thetas[p.id()]) for p in self.n_priors ]
+        Fbs = np.array([ p.xform(thetas[p.id()]) for p in self.Fb_priors ])
+        ns = np.array([ p.xform(thetas[p.id()]) for p in self.n_priors ])
 
         model = llh.Model(A, Fbs, ns, self.eps, self.d_mu_eps)
 
