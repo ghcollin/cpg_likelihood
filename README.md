@@ -12,8 +12,8 @@ If you use Ubuntu, you can use:
 
 Then, install the CPG likelihood package with
 
-    pip install git+https://github.com/ghcollin/cpg_likelihood.git# Downloading
-
+    pip install git+https://github.com/ghcollin/cpg_likelihood.git
+    
 # Downloading
 
 To download, use the following command to clone the repository and all submodules:
