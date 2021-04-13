@@ -75,4 +75,15 @@ If you use this library, please cite
         number = {2}
     }
 
-    [ todo: insert our paper ]
+    @article{Collin:2021ufc,
+        title = {A {{Compound Poisson Generator}} Approach to {{Point}}-{{Source Inference}} in {{Astrophysics}}},
+        author = {Collin, Gabriel H. and Rodd, Nicholas L. and Erjavec, Tyler and Perez, Kerstin},
+        date = {2021-04-09},
+        url = {http://arxiv.org/abs/2104.04529},
+        urldate = {2021-04-13},
+        archivePrefix = {arXiv},
+        eprint = {2104.04529},
+        eprinttype = {arxiv}
+    }
+
+
