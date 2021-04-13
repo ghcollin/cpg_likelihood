@@ -145,6 +145,9 @@ bool series_model(SeriesWorkspace::Scratch& ws, MatrixRef power_series, int64_t 
     bool bad = series_1(ws, power_series, max_power, eps, A * std::exp(ln_coeff) * Fbs[0], Fbs[0], ns[0]);
     ln_coeff = 0;
     // TODO: multiple breaks
+    if (Fbs.size() > 1) {
+        throw std::runtime_error("Only a single flux break is currently implemented.");
+    }
     bad = bad || series_k(ws, power_series, max_power, eps, A * std::exp(ln_coeff) * Fbs[Fbs.size()-1], Fbs[Fbs.size()-1], ns[ns.size()-1]);
     return bad;
 }

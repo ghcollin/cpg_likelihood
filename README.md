@@ -36,13 +36,17 @@ A file with examples for setting up a model and running the `emcee` sampler is l
 
     examples/model_construction.py
 
-You will need to install the `emcee`, `scipy`, and `corner` packages to run this example:
+You will need to install the `emcee`, `scipy`, `matplotlib` and `corner` packages to run this example:
 
-    pip install emcee scipy corner
+    pip install emcee scipy matplotlib corner
 
 You can then run the example by specifying an output PDF into which the posterior will be rendered:
 
     python3 model_construction.py test.pdf
+
+# Current limitations
+
+Only a single break for the differential source count function is currently implemented. Multiple breaks will be added in a future version.
 
 # Dependencies
 
