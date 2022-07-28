@@ -61,6 +61,8 @@ def ptlnprior(theta):
 
 def run_emcee(joint_dist, n_walkers, n_steps, random, pool, progress=True):
     n_params = joint_dist.total_params
+    if n_params >= n_steps:
+        raise Exception("You should ask for more steps than parameters in your model.")
 
     initial = random.uniform(size=(n_walkers, n_params)).astype(np.float64)
     ln_p = LnPJoint(joint_dist)
@@ -69,10 +71,15 @@ def run_emcee(joint_dist, n_walkers, n_steps, random, pool, progress=True):
     sampler = emcee.EnsembleSampler(n_walkers, n_params, ln_p, pool=pool)
     sampler.run_mcmc(initial, n_steps, progress=progress)
     samples = sampler.get_chain(flat=True)
-    return samples[:].T
+    if samples.shape[0] == n_params:
+        return samples[:].T
+    else:
+        return samples[:]
 
 def run_ptemcee(joint_dist, n_walkers, n_steps, n_temps, random, pool, progress=True):
     n_params = joint_dist.total_params
+    if n_params >= n_steps:
+        raise Exception("You should ask for more steps than parameters in your model.")
 
     initial = random.uniform(size=(n_temps, n_walkers, n_params)).astype(np.float64)
     ln_p = LnPJoint(joint_dist)
@@ -82,4 +89,7 @@ def run_ptemcee(joint_dist, n_walkers, n_steps, n_temps, random, pool, progress=
     sampler.run_mcmc(initial, n_steps)
     samples = sampler.flatchain[:]
     samples = samples[0]
-    return samples[:].T
+    if samples.shape[0] == n_params:
+        return samples[:].T
+    else:
+        return samples[:]
