@@ -36,11 +36,15 @@ A file with examples for setting up a model and running the `emcee` sampler is l
 
     examples/model_construction.py
 
-You will need to install the `emcee`, `scipy`, `matplotlib` and `corner` packages to run this example:
+A file with examples for using the `dynesty` sampler and creating the `mu(epsilon)` function through integration, simulation or from detector Monte-Carlo is located in
 
-    pip install emcee scipy matplotlib corner
+    examples/mueps_construction.py
 
-You can then run the example by specifying an output PDF into which the posterior will be rendered:
+You will need to install the `emcee`, `scipy`, `matplotlib`, `corner` and `dynesty` packages to run these examples:
+
+    pip install emcee scipy matplotlib corner dynesty
+
+You can then run the examples by specifying an output PDF into which the posterior will be rendered:
 
     python3 model_construction.py test.pdf
 
@@ -57,7 +61,7 @@ The algorithm has been modified to make it more numerically stable for this spec
 
 # References
 
-If you use this library, please cite
+If you use this library, you may wish to consider citing
 
     @article{navas-palenciaFastAccurateAlgorithm2018,
         title = {Fast and Accurate Algorithm for the Generalized Exponential Integral {{E}} ν (x) for Positive Real Order},

@@ -234,6 +234,7 @@ def unique_list(l):
             unique.add(e)
     return True
 
+import threading
 
 class JointDistribution(object):
     def __init__(self, data, epsilons, model, threads = 1):
@@ -242,7 +243,16 @@ class JointDistribution(object):
         self.total_params = len(self.flat_dtype.descr)
         self.empty_map = np.zeros_like(data).astype(float)
 
-        self.workspace = llh.Workspace(data, len(epsilons), threads)
+        self.workspace = (data, len(epsilons), threads)
+        self.tl = threading.local()
+
+    def __getstate__(self):
+        self.tl = None
+        return self.__dict__.copy()
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.tl = threading.local()
 
     def get_params(self, thetas):
         result = np.squeeze(thetas.copy().view(self.model.dtype))
@@ -273,6 +283,8 @@ class JointDistribution(object):
     def ln_p(self, thetas, return_bad=False):
         thetas_ary = thetas.view(self.model.dtype)
 
+        workspace = self.tl.__dict__.setdefault('workspace', llh.Workspace(*self.workspace))
+
         #print((self.flat_dtype.itemsize, self.model.dtype.itemsize, self.total_params, self.flat_dtype.descr))
         vals = []
         bad = False
@@ -283,7 +295,7 @@ class JointDistribution(object):
 
             assert(len(ps_models) > 0)
             assert(poiss_model is not None)
-            val, bad_ = self.workspace.eval(ps_models, poiss_model)
+            val, bad_ = workspace.eval(ps_models, poiss_model)
             vals.append(val)
             bad = bad or bad_
 

@@ -28,6 +28,8 @@ SOFTWARE.
 
 //#include <iostream>
 
+namespace py = pybind11;
+
 struct Workspace {
     private:
     CPG::ThreadedWorkspace ws;
@@ -49,11 +51,10 @@ struct Workspace {
     }
 
     std::tuple<double, bool> llh(const std::vector<CPG::Model>& models, CPG::constrArrayRef lambda_array) {
+        py::gil_scoped_release release;
         return CPG::llh_threaded(this->ws, this->data, models, lambda_array);
     }
 };
-
-namespace py = pybind11;
 
 PYBIND11_MODULE(llh, m) {
     py::class_<Workspace>(m, "Workspace")

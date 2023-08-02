@@ -93,3 +93,15 @@ def run_ptemcee(joint_dist, n_walkers, n_steps, n_temps, random, pool, progress=
         return samples[:].T
     else:
         return samples[:]
+
+def run_dynesty(joint_dist, sampler_opts=None, **kw_args):
+    n_params = joint_dist.total_params
+
+    #initial = random.uniform(size=(n_temps, n_walkers, n_params)).astype(np.float64)
+    ln_p = LnPJoint(joint_dist)
+
+    import dynesty
+    sampler = dynesty.DynamicNestedSampler(ln_p, lambda x: x, n_params, **(sampler_opts if sampler_opts else {}))
+    sampler.run_nested(**kw_args)
+    results = sampler.results
+    return results.samples, results.importance_weights()

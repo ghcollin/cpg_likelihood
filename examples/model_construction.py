@@ -2,10 +2,13 @@ import numpy as np
 import scipy.stats
 
 def create_test_data(bg_flux):
+    """
+    This function creates a synthetic image and mu(epsilon) function for the purpose of the functions that construct models.
+    """
     image_shape = (10,100)
 
     eps_bins = np.logspace(-3, 3, 100)
-    eps = (eps_bins[:1] + eps_bins[1:])/2.0
+    eps = (eps_bins[:-1] + eps_bins[1:])/2.0
     d_eps_map = scipy.stats.norm.sf(eps,)
     d_eps_map = np.zeros(image_shape + (len(eps_bins)-1,)) + scipy.stats.norm.pdf(eps, 1, 0.5)[None,None,:]
     d_eps_map /= np.prod(image_shape) * d_eps_map.sum(axis=2)[:,:,None] # As this is synthetic, need to ensure that it's normalised correctly
@@ -190,13 +193,15 @@ def run(out_fname):
                 # If you have many CPU cores, Python's multiprocessing pool cannot keep up, and so increasing the thread count here 
                 # will allow most cores to be utilised.
                 # MPI parallelisation may scale better, in which case it might be best to keep the thread count lower.
-                threads=4
+                threads=1
             )
 
             import multiprocessing
             # In my experience, going above a pool size of 16 is counter-productive, instead of going over 16 you may want to consider
             # increasing the thread count instead.
-            with multiprocessing.Pool(16) as pool:
+            #with multiprocessing.Pool(64) as pool:
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor(max_workers=16) as pool:
                 # This helper function sets up and runs emcee
                 raw_samples = cpg_likelihood.mcmc.run_emcee(
                     joint, # Joint distribution to sample 

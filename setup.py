@@ -4,7 +4,7 @@ import sys
 import setuptools
 import os
 
-__version__ = '0.0.1'
+__version__ = '0.1.1'
 
 
 # Define an easy function for calling the shell
